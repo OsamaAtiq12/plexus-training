@@ -1,6 +1,7 @@
-- [x] Analyze requirements
-- [ ] Review DashboardEditor.jsx to understand widget addition and layout saving
-- [ ] Check backend logic for saving dashboard layouts and widgets
-- [ ] Update frontend to save widgets with dashboard layout
-- [ ] Update backend to support saving widgets with dashboard if needed
-- [ ] Test the implementation for bugs and verify correct widget association
+- [ ] Analyze how widgets are rendered and positioned in the dashboard editor
+- [ ] Choose and set up a resizing approach (library or custom)
+- [ ] Update widget container/components to support resizing
+- [ ] Ensure widget content adapts to new size
+- [ ] Persist widget size if required (in state or backend)
+- [ ] Test resizing in the dashboard editor
+- [ ] Verify results and polish UI/UX

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import SweetAlert from "../components/ui/SweetAlert";
 import { Button } from "../components/ui/button";
 import KpiCard from "../components/widgets/KpiCard";
 import ChartWidget from "../components/widgets/ChartWidget";
@@ -7,6 +8,27 @@ import TableWidget from "../components/widgets/TableWidget";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { getDashboards, getWidgets, getDashboardLayout, saveDashboardLayout } from "../api";
+import { Resizable } from "react-resizable";
+import "react-resizable/css/styles.css";
+
+// Custom styles for resize handle and widget highlight
+const baseResizableHandleStyle = {
+  position: "absolute",
+  width: 20,
+  height: 20,
+  right: 0,
+  bottom: 0,
+  background: "linear-gradient(135deg, #3b82f6 60%, #fff0 60%)",
+  borderRadius: "0 0 6px 0",
+  cursor: "se-resize",
+  zIndex: 10,
+  boxShadow: "0 0 2px #3b82f6",
+  transform: "translate(-100%, -100%)"
+};
+const widgetContainerStyle = {
+  position: "relative",
+  transition: "box-shadow 0.2s, border 0.2s"
+};
 
 
 
@@ -181,17 +203,32 @@ export default function DashboardEditor() {
     if (!dashboardId) return;
     const token = localStorage.getItem("auth_token");
     if (!token) {
-      alert("You must be logged in to save layouts.");
+      SweetAlert({
+        type: "warning",
+        title: "Not logged in",
+        text: "You must be logged in to save layouts."
+      });
       return;
     }
     try {
       // Save the full widget objects (id, type, props) as the layout
       await saveDashboardLayout(dashboardId, widgets, token);
-      alert("Layout and widgets saved!");
+      SweetAlert({
+        type: "success",
+        title: "Success",
+        text: "Layout and widgets saved!"
+      });
     } catch (err) {
-      alert("Failed to save layout: " + (err.message || "Unknown error"));
+      SweetAlert({
+        type: "error",
+        title: "Save Failed",
+        text: "Failed to save layout: " + (err.message || "Unknown error")
+      });
     }
   }
+
+// Track which widget is selected for dragging/resizing
+const [selectedWidgetIndex, setSelectedWidgetIndex] = useState(null);
 
   // If editing a specific dashboard
   if (dashboardId) {
@@ -199,7 +236,10 @@ export default function DashboardEditor() {
     return (
       <DndProvider backend={HTML5Backend}>
         <div className="flex min-h-screen bg-gradient-to-br from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
-          <main className="flex-1 p-8">
+          <main
+            className="flex-1 p-8"
+            onClick={() => setSelectedWidgetIndex(null)}
+          >
             <Button variant="secondary" className="mb-4" onClick={() => navigate("/dashboard-editor")}>
               Back to Dashboards
             </Button>
@@ -220,18 +260,185 @@ export default function DashboardEditor() {
               <Button onClick={addWidget}>Add Widget</Button>
               <Button variant="secondary" onClick={saveLayout}>Save Layout</Button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Handle position controls for selected widget (rendered only once, outside the widget loop) */}
+            {selectedWidgetIndex !== null && widgets[selectedWidgetIndex] && (
+              <div className="mb-4 flex items-center gap-2">
+                <span className="font-medium">Resizer Position (Selected Widget Only):</span>
+                <label>
+                  Right:
+                  <input
+                    type="number"
+                    min={0}
+                    max={1000}
+                    value={
+                      (widgets[selectedWidgetIndex].props &&
+                        widgets[selectedWidgetIndex].props.handlePosition &&
+                        typeof widgets[selectedWidgetIndex].props.handlePosition.right === "number")
+                        ? widgets[selectedWidgetIndex].props.handlePosition.right
+                        : 0
+                    }
+                    onChange={e => {
+                      const value = parseInt(e.target.value, 10) || 0;
+                      setWidgets(prev => {
+                        // Only update the selected widget, leave others unchanged
+                        return prev.map((widget, idx) =>
+                          idx === selectedWidgetIndex
+                            ? {
+                                ...widget,
+                                props: {
+                                  ...widget.props,
+                                  handlePosition: {
+                                    ...((widget.props && widget.props.handlePosition) || {}),
+                                    right: value
+                                  }
+                                }
+                              }
+                            : widget
+                        );
+                      });
+                    }}
+                    className="border rounded px-2 py-1 w-20 mx-1"
+                  />
+                </label>
+                <label>
+                  Bottom:
+                  <input
+                    type="number"
+                    min={0}
+                    max={800}
+                    value={
+                      (widgets[selectedWidgetIndex].props &&
+                        widgets[selectedWidgetIndex].props.handlePosition &&
+                        typeof widgets[selectedWidgetIndex].props.handlePosition.bottom === "number")
+                        ? widgets[selectedWidgetIndex].props.handlePosition.bottom
+                        : 0
+                    }
+                    onChange={e => {
+                      const value = parseInt(e.target.value, 10) || 0;
+                      setWidgets(prev => {
+                        // Only update the selected widget, leave others unchanged
+                        return prev.map((widget, idx) =>
+                          idx === selectedWidgetIndex
+                            ? {
+                                ...widget,
+                                props: {
+                                  ...widget.props,
+                                  handlePosition: {
+                                    ...((widget.props && widget.props.handlePosition) || {}),
+                                    bottom: value
+                                  }
+                                }
+                              }
+                            : widget
+                        );
+                      });
+                    }}
+                    className="border rounded px-2 py-1 w-20 mx-1"
+                  />
+                </label>
+              </div>
+            )}
+            <div
+              className="grid gap-6"
+              style={{
+                minHeight: 200,
+                gridTemplateColumns: "repeat(3, 1fr)", // 3 columns, adjust as needed
+                gridAutoRows: "minmax(220px, auto)"    // fixed min height for consistency
+              }}
+              onClick={e => e.stopPropagation()}
+            >
               {widgets.map((w, i) => {
                 // Chart widgets take full width
-                const colSpan = w.type === "chart" ? "md:col-span-3" : "";
+                // No colSpan with grid layout; all widgets occupy one grid cell
+                // Default size if not present
+                const defaultSize = w.type === "chart"
+                  ? { width: 600, height: 300 }
+                  : { width: 300, height: 200 };
+                const size = w.props && w.props.size
+                  ? w.props.size
+                  : defaultSize;
+
+                // Handle resize event
+                const onResize = (e, { size: newSize }) => {
+                  setWidgets(prev =>
+                    prev.map((widget, idx) =>
+                      idx === i
+                        ? {
+                            ...widget,
+                            props: {
+                              ...widget.props,
+                              size: { width: newSize.width, height: newSize.height }
+                            }
+                          }
+                        : widget
+                    )
+                  );
+                };
+
+                // Only the selected widget is draggable
+                const isSelected = selectedWidgetIndex === i;
+
+                const widgetContent = (
+                  <div
+                    style={{
+                      ...widgetContainerStyle,
+                      width: size.width,
+                      height: size.height,
+                      border: isSelected ? "2px solid #3b82f6" : "2px solid transparent",
+                      boxShadow: isSelected ? "0 0 0 2px #3b82f6" : undefined,
+                      cursor: "pointer"
+                    }}
+                    className="group"
+                    onClick={() => setSelectedWidgetIndex(i)}
+                  >
+                    <div
+                      className="absolute inset-0 pointer-events-none transition-all"
+                      style={{
+                        border: "2px solid transparent",
+                        borderColor: undefined,
+                        boxShadow: undefined
+                      }}
+                    />
+                    {w.type === "kpi" && <KpiCard {...w.props} size={size} />}
+                    {w.type === "chart" && <ChartWidget {...w.props} size={size} />}
+                    {w.type === "table" && <TableWidget {...w.props} size={size} />}
+                  </div>
+                );
+
                 return (
-                  <DraggableWidget key={w.id} id={w.id} index={i} moveWidget={moveWidget}>
-                    <div className={colSpan}>
-                      {w.type === "kpi" && <KpiCard {...w.props} />}
-                      {w.type === "chart" && <ChartWidget {...w.props} />}
-                      {w.type === "table" && <TableWidget {...w.props} />}
-                    </div>
-                  </DraggableWidget>
+                  <div key={w.id}>
+                    <DraggableWidget id={w.id} index={i} moveWidget={moveWidget}>
+                      {isSelected ? (
+                        <Resizable
+                          width={size.width}
+                          height={size.height}
+                          onResize={onResize}
+                          minConstraints={[150, 100]}
+                          maxConstraints={[1000, 800]}
+                        >
+                          <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                            {widgetContent}
+                          </div>
+                        </Resizable>
+                      ) : (
+                        <div
+                          style={{
+                            ...widgetContainerStyle,
+                            width: size.width,
+                            height: size.height,
+                            border: "2px solid transparent",
+                            cursor: "pointer"
+                          }}
+                          className="group"
+                          onClick={e => { e.stopPropagation(); setSelectedWidgetIndex(i); }}
+                        >
+                          {w.type === "kpi" && <KpiCard {...w.props} size={size} />}
+                          {w.type === "chart" && <ChartWidget {...w.props} size={size} />}
+                          {w.type === "table" && <TableWidget {...w.props} size={size} />}
+                        </div>
+                      )}
+                    </DraggableWidget>
+                  </div>
                 );
               })}
             </div>

@@ -16,10 +16,14 @@ import { Card } from "../ui/card";
 
 // Show widget ID at the top
 
-export default function KpiCard({ title, widgetName = "KpiCard" }) {
+export default function KpiCard({ title, widgetName = "KpiCard", style, size }) {
   // Hardcoded KPI data except for the name/title
+  const cardStyle = { ...style, ...(size ? { width: size.width, height: size.height } : {}) };
   return (
-    <div className="flex flex-col items-center justify-center gap-4 p-8 bg-gradient-to-tr from-slate-100 to-slate-50 dark:from-slate-900 dark:to-slate-800 h-full text-center rounded-xl shadow min-h-[120px] select-none">
+    <div
+      className="flex flex-col items-center justify-center gap-4 p-8 bg-gradient-to-tr from-slate-100 to-slate-50 dark:from-slate-900 dark:to-slate-800 h-full text-center rounded-xl shadow min-h-[120px] select-none"
+      style={cardStyle}
+    >
       <div className="text-3xl text-primary mb-2">📈</div>
       <div className="text-2xl font-bold mb-1">12345</div>
       <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">
