@@ -11,6 +11,7 @@
  * @param {string} [widgetName] - Name of the widget (default: "TableWidget").
  */
 import { Card } from "../ui/card";
+import { dummyTableColumns, dummyTableData } from "../../lib/utils";
 
 export default function TableWidget({
   id,
@@ -23,6 +24,10 @@ export default function TableWidget({
   widgetName = "TableWidget",
   onClick
 }) {
+  // Dummy sales data as fallback
+  const tableColumns = columns && columns.length ? columns : dummyTableColumns;
+  const tableData = data && data.length ? data : dummyTableData;
+
   // Determine dynamic style and size
   const cardStyle = { ...style, ...(size ? { width: size.width, height: size.height } : {}) };
 
@@ -52,15 +57,15 @@ export default function TableWidget({
         <table className="min-w-full text-sm">
           <thead>
             <tr>
-              {columns.map((col) => (
+              {tableColumns.map((col) => (
                 <th key={col} className="px-2 py-1 text-left text-muted-foreground font-medium">{col}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {data.map((row, i) => (
+            {tableData.map((row, i) => (
               <tr key={i} className="border-t border-slate-100 dark:border-slate-800">
-                {columns.map((col) => (
+                {tableColumns.map((col) => (
                   <td key={col} className="px-2 py-1">{row[col]}</td>
                 ))}
               </tr>

@@ -10,6 +10,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { getDashboards, getWidgets, getDashboardLayout, saveDashboardLayout } from "../api";
 import { Resizable } from "react-resizable";
 import "react-resizable/css/styles.css";
+import { dummyKpiCardsData } from "../lib/utils";
 
 // Custom styles for resize handle and widget highlight
 const baseResizableHandleStyle = {
@@ -348,9 +349,6 @@ const [selectedWidgetIndex, setSelectedWidgetIndex] = useState(null);
               onClick={e => e.stopPropagation()}
             >
               {widgets.map((w, i) => {
-                // Chart widgets take full width
-                // No colSpan with grid layout; all widgets occupy one grid cell
-                // Default size if not present
                 const defaultSize = w.type === "chart"
                   ? { width: 600, height: 300 }
                   : { width: 300, height: 200 };
@@ -358,7 +356,6 @@ const [selectedWidgetIndex, setSelectedWidgetIndex] = useState(null);
                   ? w.props.size
                   : defaultSize;
 
-                // Handle resize event
                 const onResize = (e, { size: newSize }) => {
                   setWidgets(prev =>
                     prev.map((widget, idx) =>
@@ -375,7 +372,6 @@ const [selectedWidgetIndex, setSelectedWidgetIndex] = useState(null);
                   );
                 };
 
-                // Only the selected widget is draggable
                 const isSelected = selectedWidgetIndex === i;
 
                 const widgetContent = (
@@ -399,7 +395,12 @@ const [selectedWidgetIndex, setSelectedWidgetIndex] = useState(null);
                         boxShadow: undefined
                       }}
                     />
-                    {w.type === "kpi" && <KpiCard {...w.props} size={size} />}
+                    {w.type === "kpi" && (
+                      <KpiCard
+                        {...dummyKpiCardsData[i % dummyKpiCardsData.length]}
+                        {...(w.props ? { style: w.props.style, size } : { size })}
+                      />
+                    )}
                     {w.type === "chart" && <ChartWidget {...w.props} size={size} />}
                     {w.type === "table" && <TableWidget {...w.props} size={size} />}
                   </div>
@@ -432,7 +433,12 @@ const [selectedWidgetIndex, setSelectedWidgetIndex] = useState(null);
                           className="group"
                           onClick={e => { e.stopPropagation(); setSelectedWidgetIndex(i); }}
                         >
-                          {w.type === "kpi" && <KpiCard {...w.props} size={size} />}
+                          {w.type === "kpi" && (
+                            <KpiCard
+                              {...dummyKpiCardsData[i % dummyKpiCardsData.length]}
+                              {...(w.props ? { style: w.props.style, size } : { size })}
+                            />
+                          )}
                           {w.type === "chart" && <ChartWidget {...w.props} size={size} />}
                           {w.type === "table" && <TableWidget {...w.props} size={size} />}
                         </div>

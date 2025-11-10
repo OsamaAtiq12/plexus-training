@@ -22,6 +22,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { dummyBarChartData, dummyPieChartData } from "../../lib/utils";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
@@ -34,27 +35,9 @@ export default function ChartWidget({
   style,
   size,
 }) {
-  // Example fallback data if none provided
-  const defaultBarData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    datasets: [
-      {
-        label: "Users",
-        data: [120, 190, 170, 210, 250, 300],
-        backgroundColor: "#6366f1",
-      },
-    ],
-  };
-  const defaultPieData = {
-    labels: ["Red", "Blue", "Yellow"],
-    datasets: [
-      {
-        label: "Votes",
-        data: [12, 19, 3],
-        backgroundColor: ["#f87171", "#60a5fa", "#fbbf24"],
-      },
-    ],
-  };
+  // Use dummy sales data from utils if none provided
+  const defaultBarData = dummyBarChartData;
+  const defaultPieData = dummyPieChartData;
   // Determine dynamic style and size
   const chartStyle = { ...style, ...(size ? { width: size.width, height: size.height } : {}) };
   

@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { clearToken, getToken } from "../auth";
 import { getMe, getDashboards, getDashboardWidgets, getDashboardLayout, logout } from "../api";
-import { Button } from "../components/ui/button";
 import KpiCard from "../components/widgets/KpiCard";
 import TableWidget from "../components/widgets/TableWidget";
 import ChartWidget from "../components/widgets/ChartWidget";
-
+import { dummyKpiCardsData } from "../lib/utils";
 import { useParams } from "react-router-dom";
 
 export function DashboardWrapper() {
@@ -109,7 +108,14 @@ export default function Dashboard({ activeDashboard: propActiveDashboard }) {
           <div>Loading widgets...</div>
         ) : (
           <div className="rounded-lg shadow p-6 h-full flex flex-col">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 overflow-y-auto">
+            <div
+              className="grid gap-6"
+              style={{
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gridAutoRows: "minmax(220px, auto)",
+                minHeight: 200,
+              }}
+            >
               {(
                 layout.length > 0
                   ? (
@@ -120,19 +126,34 @@ export default function Dashboard({ activeDashboard: propActiveDashboard }) {
                             .filter(Boolean)
                     )
                   : widgets
-              ).map((w, i, arr) => {
-                // Only make chart full width if it's the only chart in the layout
-                let chartCount = arr.filter(item => item.type === "chart").length;
-                const colSpan =
-                  w.type === "chart" && chartCount === 1 ? "md:col-span-3" : "";
-                return (
-                  <div key={w.id} className={colSpan}>
-                    {w.type === "kpi" && <KpiCard {...(w.props ? w.props : w)} />}
-                    {w.type === "chart" && <ChartWidget {...(w.props ? w.props : w)} />}
-                    {w.type === "table" && <TableWidget {...(w.props ? w.props : w)} />}
-                  </div>
-                );
-              })}
+              ).map((w, i) => (
+                <div key={w.id}>
+                  {w.type === "kpi" && (
+                    <KpiCard
+                      {...dummyKpiCardsData[i % dummyKpiCardsData.length]}
+                      {...(w.props ? { style: w.props.style, size: w.props.size } : {})}
+                    />
+                  )}
+                  {w.type === "chart" && (
+                    <ChartWidget
+                      {...(w.props ? w.props : w)}
+                      size={
+                        w.props && w.props.size
+                          ? w.props.size
+                          : { width: 600, height: 300 }
+                      }
+                      style={{
+                        minWidth: 600,
+                        minHeight: 300,
+                        maxWidth: 600,
+                        maxHeight: 300,
+                        ...(w.props && w.props.style ? w.props.style : {}),
+                      }}
+                    />
+                  )}
+                  {w.type === "table" && <TableWidget {...(w.props ? w.props : w)} />}
+                </div>
+              ))}
             </div>
           </div>
         )}
