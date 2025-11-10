@@ -1,0 +1,6 @@
+- [x] Analyze requirements
+- [ ] Review DashboardEditor.jsx to understand widget addition and layout saving
+- [ ] Check backend logic for saving dashboard layouts and widgets
+- [ ] Update frontend to save widgets with dashboard layout
+- [ ] Update backend to support saving widgets with dashboard if needed
+- [ ] Test the implementation for bugs and verify correct widget association
