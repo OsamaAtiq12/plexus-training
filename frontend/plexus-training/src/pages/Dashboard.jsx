@@ -87,7 +87,7 @@ export default function Dashboard({ activeDashboard: propActiveDashboard }) {
  
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
+    <div className="flex  bg-gradient-to-br from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
       <main className="flex-1 p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -108,38 +108,32 @@ export default function Dashboard({ activeDashboard: propActiveDashboard }) {
         {loading ? (
           <div>Loading widgets...</div>
         ) : (
-          <div className="flex flex-row flex-wrap gap-8 items-start">
-            {(
-              layout.length > 0
-                ? (
-                    typeof layout[0] === "object" && layout[0].type
-                      ? layout // array of widget objects (new format)
-                      : layout
-                          .map((id) => widgets.find((w) => w.id === id))
-                          .filter(Boolean)
-                  )
-                : widgets
-            ).map((w, i) => {
-              if (w.type === "kpi")
+          <div className="rounded-lg shadow p-6 h-full flex flex-col">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 overflow-y-auto">
+              {(
+                layout.length > 0
+                  ? (
+                      typeof layout[0] === "object" && layout[0].type
+                        ? layout // array of widget objects (new format)
+                        : layout
+                            .map((id) => widgets.find((w) => w.id === id))
+                            .filter(Boolean)
+                    )
+                  : widgets
+              ).map((w, i, arr) => {
+                // Only make chart full width if it's the only chart in the layout
+                let chartCount = arr.filter(item => item.type === "chart").length;
+                const colSpan =
+                  w.type === "chart" && chartCount === 1 ? "md:col-span-3" : "";
                 return (
-                  <div key={w.id} className="w-[600px] mb-4">
-                    <KpiCard {...w.props ? w.props : w} />
+                  <div key={w.id} className={colSpan}>
+                    {w.type === "kpi" && <KpiCard {...(w.props ? w.props : w)} />}
+                    {w.type === "chart" && <ChartWidget {...(w.props ? w.props : w)} />}
+                    {w.type === "table" && <TableWidget {...(w.props ? w.props : w)} />}
                   </div>
                 );
-              if (w.type === "chart")
-                return (
-                  <div key={w.id} className="w-[600px] mb-4">
-                    <ChartWidget {...w.props ? w.props : w} />
-                  </div>
-                );
-              if (w.type === "table")
-                return (
-                  <div key={w.id} className="w-[600px] mb-4">
-                    <TableWidget {...w.props ? w.props : w} />
-                  </div>
-                );
-              return null;
-            })}
+              })}
+            </div>
           </div>
         )}
         {error && (

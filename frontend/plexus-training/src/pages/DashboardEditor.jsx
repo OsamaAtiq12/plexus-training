@@ -243,7 +243,7 @@ export default function DashboardEditor() {
 
   // If no dashboardId, show dashboards table
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
+    <div className="flex bg-gradient-to-br from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
       <main className="flex-1 p-8">
         <h2 className="text-2xl font-bold mb-6">Dashboards</h2>
         {error && <div className="mb-4 text-red-600">{error}</div>}

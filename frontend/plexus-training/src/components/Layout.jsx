@@ -37,8 +37,9 @@ export default function Layout() {
         dashboards={dashboards}
         activeDashboard={activeDashboard}
         onSelectDashboard={handleSelectDashboard}
+        className="fixed left-0 top-0 h-screen w-64 z-20"
       />
-      <main className="flex-1 p-8">
+      <main className=" flex-1 p-8 h-screen overflow-y-auto">
         <Outlet context={{ activeDashboard }} />
       </main>
     </div>
