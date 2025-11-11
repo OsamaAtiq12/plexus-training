@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { clearToken, getToken } from "../auth";
-import { getMe, getDashboards, getDashboardWidgets, getDashboardLayout, logout } from "../api";
+import {
+  getMe,
+  getDashboards,
+  getDashboardWidgets,
+  getDashboardLayout,
+  logout,
+} from "../api";
 import KpiCard from "../components/widgets/KpiCard";
 import TableWidget from "../components/widgets/TableWidget";
 import ChartWidget from "../components/widgets/ChartWidget";
@@ -11,13 +17,18 @@ import { useParams } from "react-router-dom";
 export function DashboardWrapper() {
   // Use dashboardId from route params for dynamic routing
   const { dashboardId } = useParams();
-  return <Dashboard activeDashboard={dashboardId ? Number(dashboardId) : undefined} />;
+  return (
+    <Dashboard
+      activeDashboard={dashboardId ? Number(dashboardId) : undefined}
+    />
+  );
 }
 
 export default function Dashboard({ activeDashboard: propActiveDashboard }) {
   // Use prop if provided, else fallback to context (for compatibility)
   const context = useOutletContext && useOutletContext();
-  const activeDashboard = propActiveDashboard ?? (context && context.activeDashboard);
+  const activeDashboard =
+    propActiveDashboard ?? (context && context.activeDashboard);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
@@ -83,8 +94,6 @@ export default function Dashboard({ activeDashboard: propActiveDashboard }) {
     fetchLayoutAndWidgets();
   }, [activeDashboard]);
 
- 
-
   return (
     <div className="flex  bg-gradient-to-br from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
       <main className="flex-1 p-8">
@@ -92,7 +101,9 @@ export default function Dashboard({ activeDashboard: propActiveDashboard }) {
           <div>
             <h2 className="text-3xl font-bold tracking-tight">
               {(() => {
-                const current = dashboards.find((d) => d.id === activeDashboard);
+                const current = dashboards.find(
+                  (d) => d.id === activeDashboard
+                );
                 return current ? `${current.name} dashboard` : "Dashboard";
               })()}
             </h2>
@@ -100,9 +111,8 @@ export default function Dashboard({ activeDashboard: propActiveDashboard }) {
               Welcome back{user ? `, ${user.name}` : ""}.
             </p>
           </div>
-          
         </div>
-        
+
         {/* Removed tab UI for dashboard name */}
         {loading ? (
           <div>Loading widgets...</div>
@@ -116,42 +126,37 @@ export default function Dashboard({ activeDashboard: propActiveDashboard }) {
                 minHeight: 200,
               }}
             >
-              {(
-                layout.length > 0
-                  ? (
-                      typeof layout[0] === "object" && layout[0].type
-                        ? layout // array of widget objects (new format)
-                        : layout
-                            .map((id) => widgets.find((w) => w.id === id))
-                            .filter(Boolean)
-                    )
-                  : widgets
+              {(layout.length > 0
+                ? typeof layout[0] === "object" && layout[0].type
+                  ? layout // array of widget objects (new format)
+                  : layout
+                      .map((id) => widgets.find((w) => w.id === id))
+                      .filter(Boolean)
+                : widgets
               ).map((w, i) => (
                 <div key={w.id}>
                   {w.type === "kpi" && (
                     <KpiCard
                       {...dummyKpiCardsData[i % dummyKpiCardsData.length]}
-                      {...(w.props ? { style: w.props.style, size: w.props.size } : {})}
+                      {...(w.props ? w.props : {})}
+                      size={w.props && w.props.size ? w.props.size : undefined}
                     />
                   )}
                   {w.type === "chart" && (
                     <ChartWidget
                       {...(w.props ? w.props : w)}
-                      size={
-                        w.props && w.props.size
-                          ? w.props.size
-                          : { width: 600, height: 300 }
+                      size={w.props && w.props.size ? w.props.size : undefined}
+                      style={
+                        w.props && w.props.style ? w.props.style : undefined
                       }
-                      style={{
-                        minWidth: 600,
-                        minHeight: 300,
-                        maxWidth: 600,
-                        maxHeight: 300,
-                        ...(w.props && w.props.style ? w.props.style : {}),
-                      }}
                     />
                   )}
-                  {w.type === "table" && <TableWidget {...(w.props ? w.props : w)} />}
+                  {w.type === "table" && (
+                    <TableWidget
+                      {...(w.props ? w.props : w)}
+                      size={w.props && w.props.size ? w.props.size : undefined}
+                    />
+                  )}
                 </div>
               ))}
             </div>
