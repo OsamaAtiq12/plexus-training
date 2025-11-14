@@ -117,9 +117,9 @@ export default function Dashboard({ activeDashboard: propActiveDashboard }) {
         {loading ? (
           <div>Loading widgets...</div>
         ) : (
-          <div className="rounded-lg shadow p-6 h-full flex flex-col">
+          <div className="rounded-lg shadow  h-full flex flex-col">
             <div
-              className="grid gap-6"
+              className="grid gap-x-2 gap-y-10"
               style={{
                 gridTemplateColumns: "repeat(3, 1fr)",
                 gridAutoRows: "minmax(220px, auto)",
