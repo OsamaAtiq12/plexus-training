@@ -28,8 +28,8 @@ const baseResizableHandleStyle = {
   borderRadius: "0 0 6px 0",
   cursor: "se-resize",
   zIndex: 10,
-  boxShadow: "0 0 2px #3b82f6",
-  transform: "translate(-100%, -100%)",
+  boxShadow: "0 0 2px #3b82f6"
+  // Removed transform to make handle flush with widget border
 };
 const widgetContainerStyle = {
   position: "relative",
@@ -250,7 +250,7 @@ export default function DashboardEditor() {
     );
     return (
       <DndProvider backend={HTML5Backend}>
-        <div className="flex min-h-screen bg-gradient-to-br from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
+        <div className="flex h-auto overflow-hidden bg-gradient-to-br from-white to-slate-50 dark:from-slate-950 dark:to-slate-900">
           <main
             className="flex-1 p-8"
             onClick={() => setSelectedWidgetIndex(null)}
@@ -362,11 +362,12 @@ export default function DashboardEditor() {
               </div>
             )}
             <div
-              className="grid gap-6"
+              className="grid gap-x-2 gap-y-10"
               style={{
                 minHeight: 200,
-                gridTemplateColumns: "repeat(3, 1fr)", // 3 columns, adjust as needed
-                gridAutoRows: "minmax(220px, auto)", // fixed min height for consistency
+                gridTemplateColumns: "repeat(3, 2fr)", // 3 columns, adjust as needed
+                gridAutoRows: "minmax(40px, auto)", // allow resizing, minimal space
+                gridAutoFlow: "row dense", // fill available space tightly
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -453,6 +454,20 @@ export default function DashboardEditor() {
                           onResize={onResize}
                           minConstraints={[150, 100]}
                           maxConstraints={[1000, 800]}
+                          handle={
+                            <span
+                              style={{
+                                ...baseResizableHandleStyle,
+                                pointerEvents: "auto",
+                                position: "absolute",
+                                right: 0,
+                                bottom: 0,
+                                transform: "none",
+                                // visually inside the Card
+                              }}
+                              className="resizer-handle"
+                            />
+                          }
                         >
                           <div
                             style={{
